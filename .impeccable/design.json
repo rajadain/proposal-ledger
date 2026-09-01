@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-01T00:00:00Z",
+  "title": "Design System: Proposal Ledger",
+  "extensions": {
+    "colorMeta": {
+      "accent-blue": { "role": "primary", "displayName": "Ledger Blue (Flexoki blue-600)", "canonical": "#205EA6", "tonalRamp": ["#12253B", "#163B66", "#1A4F8C", "#205EA6", "#3171B2", "#4385BE", "#66A0C8", "#ABCFE2"] },
+      "ink": { "role": "neutral", "displayName": "Ink (Flexoki black)", "canonical": "#100F0F", "tonalRamp": ["#100F0F", "#282726", "#403E3C", "#575653", "#6F6E69", "#878580", "#9F9D96", "#B7B5AC"] },
+      "total-ink": { "role": "neutral", "displayName": "Ink (numbers)", "canonical": "#100F0F", "tonalRamp": ["#100F0F", "#282726", "#403E3C", "#575653", "#6F6E69", "#878580", "#9F9D96", "#B7B5AC"] },
+      "muted": { "role": "neutral", "displayName": "Muted (Flexoki base-600)", "canonical": "#6F6E69", "tonalRamp": ["#282726", "#403E3C", "#575653", "#6F6E69", "#878580", "#9F9D96", "#B7B5AC", "#CECDC3"] },
+      "surface-canvas": { "role": "neutral", "displayName": "Base Canvas (Flexoki base-50)", "canonical": "#F2F0E5", "tonalRamp": ["#100F0F", "#282726", "#403E3C", "#6F6E69", "#9F9D96", "#CECDC3", "#E6E4D9", "#F2F0E5"] },
+      "surface-panel": { "role": "neutral", "displayName": "Paper (Flexoki paper)", "canonical": "#FFFCF0", "tonalRamp": ["#100F0F", "#282726", "#403E3C", "#6F6E69", "#9F9D96", "#CECDC3", "#E6E4D9", "#FFFCF0"] },
+      "line": { "role": "neutral", "displayName": "Line (Flexoki base-150)", "canonical": "#DAD8CE", "tonalRamp": ["#403E3C", "#575653", "#6F6E69", "#878580", "#9F9D96", "#B7B5AC", "#CECDC3", "#DAD8CE"] },
+      "accent-soft": { "role": "primary", "displayName": "Accent Soft (Flexoki blue-50)", "canonical": "#E1ECEB", "tonalRamp": ["#101A24", "#12253B", "#163B66", "#1A4F8C", "#3171B2", "#66A0C8", "#ABCFE2", "#E1ECEB"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "The app title only; system sans." },
+      "section": { "displayName": "Section", "purpose": "Level-0 outline rows; serif, 22px." },
+      "subsection": { "displayName": "Subsection", "purpose": "Level-1 outline rows; serif, 18.5px (level-2 steps to 16.5px)." },
+      "body": { "displayName": "Body", "purpose": "Leaf and level-3+ outline rows; serif at the 15px floor." },
+      "data": { "displayName": "Data", "purpose": "All hour figures; monospace, tabular. Header total renders at 22px." },
+      "label": { "displayName": "Label", "purpose": "Toolbar buttons and hints; system sans." }
+    },
+    "shadows": [
+      { "name": "resting-lift", "value": "0 1px 2px rgba(16,15,15,.05), 0 8px 24px rgba(16,15,15,.07)", "purpose": "Ambient lift for the sheet, buttons, and the floating action pill (light theme)." },
+      { "name": "resting-lift-dark", "value": "0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.5)", "purpose": "Same roles in dark theme." }
+    ],
+    "motion": [
+      { "name": "ease-state", "value": "120ms ease", "purpose": "Default transition for background/border/color on interactive surfaces." },
+      { "name": "press", "value": "40ms ease", "purpose": "Button active translate-down on press." },
+      { "name": "pill-reveal", "value": "opacity 120ms ease, transform 120ms ease", "purpose": "The row action pill fades and slides in on row hover/focus." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single primary action (Copy Markdown). The only place a solid blue fill is allowed.",
+      "html": "<button class='ds-btn-primary'>Copy Markdown</button>",
+      "css": ".ds-btn-primary{background:#205EA6;color:#FFFCF0;border:1px solid #205EA6;border-radius:9px;padding:7px 12px;font:400 13.5px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;cursor:pointer;box-shadow:0 1px 2px rgba(16,15,15,.05),0 8px 24px rgba(16,15,15,.07);transition:background 120ms ease,transform 40ms ease}.ds-btn-primary:hover{background:#1A4F8C}.ds-btn-primary:active{transform:translateY(1px)}.ds-btn-primary:focus-visible{outline:2px solid #205EA6;outline-offset:2px}"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary toolbar actions (Import, Load sample, theme toggle, Clear all). No fill, no shadow.",
+      "html": "<button class='ds-btn-ghost'>Import Markdown\u2026</button>",
+      "css": ".ds-btn-ghost{background:transparent;color:#100F0F;border:1px solid transparent;border-radius:9px;padding:7px 12px;font:400 13.5px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;cursor:pointer;transition:background 120ms ease,border-color 120ms ease}.ds-btn-ghost:hover{background:#F2F0E5;border-color:#CECDC3}.ds-btn-ghost:focus-visible{outline:2px solid #205EA6;outline-offset:2px}"
+    },
+    {
+      "name": "Hours Field",
+      "kind": "input",
+      "refersTo": "hours-input",
+      "description": "The one editable number on a leaf row. The subtle inset field marks it as typeable; monospace and tabular so digits align.",
+      "html": "<input class='ds-hours' type='number' value='8' aria-label='Hours' />",
+      "css": ".ds-hours{width:52px;text-align:right;font:700 15px ui-monospace,'SF Mono',SFMono-Regular,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;color:#100F0F;background:#E6E4D9;border:1px solid transparent;border-radius:7px;padding:4px 6px;outline:none}.ds-hours:hover{border-color:#DAD8CE}.ds-hours:focus{border-color:#205EA6;background:#FFFCF0}"
+    },
+    {
+      "name": "Collapse Toggle",
+      "kind": "custom",
+      "refersTo": "toggle",
+      "description": "Parent-row disclosure control. Chevron points down when open, right when collapsed. A 24px target holds a 15px icon.",
+      "html": "<button class='ds-toggle' aria-label='Collapse section' aria-expanded='true'><svg viewBox='0 0 16 16' fill='none' stroke='currentColor' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M3.75 6 8 10.25 12.25 6'/></svg></button>",
+      "css": ".ds-toggle{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:none;background:transparent;color:#6F6E69;border-radius:7px;cursor:pointer;transition:background 120ms ease,color 120ms ease}.ds-toggle svg{width:15px;height:15px;display:block}.ds-toggle:hover{background:#E1ECEB;color:#205EA6}.ds-toggle:focus-visible{outline:2px solid #205EA6;outline-offset:2px}"
+    },
+    {
+      "name": "Leaf Bullet",
+      "kind": "custom",
+      "refersTo": "toggle",
+      "description": "Marks a leaf (deepest) row. A small filled Ledger-Blue dot, distinct from a parent's chevron.",
+      "html": "<span class='ds-bullet'><svg viewBox='0 0 16 16'><circle cx='8' cy='8' r='2.6' fill='currentColor'/></svg></span>",
+      "css": ".ds-bullet{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;color:#205EA6}.ds-bullet svg{width:15px;height:15px;display:block}"
+    },
+    {
+      "name": "Section Row",
+      "kind": "custom",
+      "refersTo": "sheet-card",
+      "description": "A level-0 outline row: serif label on the left, monospace roll-up total on the right, preceded by air and a full-bleed rule.",
+      "html": "<div class='ds-row'><button class='ds-toggle' aria-label='Collapse' aria-expanded='true'><svg viewBox='0 0 16 16' fill='none' stroke='currentColor' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M3.75 6 8 10.25 12.25 6'/></svg></button><span class='ds-row-text'>Basic</span><span class='ds-row-num'>44</span><span class='ds-row-unit'>h</span></div>",
+      "css": ".ds-row{display:flex;align-items:center;gap:8px;min-height:36px;padding:12px 16px 0 8px;border-top:1px solid #DAD8CE}.ds-row .ds-toggle{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:none;background:transparent;color:#6F6E69;border-radius:7px;cursor:pointer}.ds-row .ds-toggle svg{width:15px;height:15px}.ds-row-text{flex:1 1 auto;font:600 22px ui-serif,'New York',Georgia,Cambria,'Times New Roman',serif;letter-spacing:-.02em;color:#100F0F}.ds-row-num{font:700 15px ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums;color:#100F0F;text-align:right;min-width:52px}.ds-row-unit{color:#6F6E69;font:600 13px -apple-system,sans-serif;width:12px}"
+    },
+    {
+      "name": "Row Action Pill",
+      "kind": "custom",
+      "refersTo": "sheet-card",
+      "description": "A floating panel pill of icon buttons (indent, outdent, move up/down, delete) revealed on row hover, anchored just left of the number gutter so figures stay visible.",
+      "html": "<div class='ds-pill'><button aria-label='Indent'><svg viewBox='0 0 16 16' fill='none' stroke='currentColor' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12.5 3.5v9'/><path d='M3.5 8h6'/><path d='M7 5.5 9.5 8 7 10.5'/></svg></button><button aria-label='Outdent'><svg viewBox='0 0 16 16' fill='none' stroke='currentColor' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M3.5 3.5v9'/><path d='M12.5 8h-6'/><path d='M9 5.5 6.5 8 9 10.5'/></svg></button><button aria-label='Move up'><svg viewBox='0 0 16 16' fill='none' stroke='currentColor' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M8 12.25V4'/><path d='M4.5 7.5 8 4l3.5 3.5'/></svg></button><button aria-label='Move down'><svg viewBox='0 0 16 16' fill='none' stroke='currentColor' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M8 3.75v8.25'/><path d='M4.5 8.5 8 12l3.5-3.5'/></svg></button><button class='ds-pill-del' aria-label='Delete'><svg viewBox='0 0 16 16' fill='none' stroke='currentColor' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M4.5 4.5 11.5 11.5'/><path d='M11.5 4.5 4.5 11.5'/></svg></button></div>",
+      "css": ".ds-pill{display:inline-flex;gap:2px;padding:2px;background:#FFFCF0;border:1px solid #DAD8CE;border-radius:9px;box-shadow:0 1px 2px rgba(16,15,15,.05),0 8px 24px rgba(16,15,15,.07)}.ds-pill button{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border:none;background:transparent;color:#6F6E69;border-radius:6px;cursor:pointer}.ds-pill button svg{width:15px;height:15px}.ds-pill button:hover{background:#E6E4D9;color:#100F0F}.ds-pill .ds-pill-del:hover{background:#FFE1D5;color:#AF3029}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Proposal Ledger",
+    "overview": "Proposal Ledger is where an editor's outline meets an accountant's column. The work — the estimate itself — is set in a serif and reads top-to-bottom like a proposal draft, while every hour is a monospace, tabular figure locked to a single right-hand gutter that totals into the header like the bottom line of a ledger. The palette is Flexoki, an inky scheme modeled on analog printing inks and warm paper: the surface reads as warm stock rather than clinical white, one quiet ink-blue is the only accent, and generous air between sections makes the structure legible before a single number is read. Nothing decorates. Surfaces are flat at rest; depth and color arrive only when you act — a focus border, a floating action pill, a leaf dot. The one accent is rationed hard so that when it appears it always means 'this is live.'",
+    "keyCharacteristics": [
+      "Serif outline, monospace numbers, sans chrome \u2014 three voices, three jobs.",
+      "Font size encodes nesting depth; the deeper the bullet, the smaller (to a floor).",
+      "One rationed ink-blue accent; everything else is warm ink on paper.",
+      "Flat by default; depth is a response to interaction, never decoration.",
+      "A single anchored number column that lands in the grand total."
+    ],
+    "rules": [
+      { "name": "The One Blue Rule", "body": "Ledger Blue covers a tiny fraction of any screen \u2014 dots, focus, one button. Its rarity is what makes it read as interactive. Never use it as a surface fill or for prose.", "section": "colors" },
+      { "name": "The Dual-Theme Rule", "body": "Color is addressed only through the nine semantic tokens; both light and dark themes redefine the same tokens. Never hard-code a raw color at a call site; on dark surfaces, muted text is tinted from the hue, never flat gray.", "section": "colors" },
+      { "name": "The Three Voices Rule", "body": "Serif is for the outline, monospace is for numbers, sans is for chrome. A number is never serif; a control label is never serif; the outline is never sans.", "section": "typography" },
+      { "name": "The Depth Ramp Rule", "body": "Font size encodes nesting: 22 to 18.5 to 16.5 to 15px as you descend. The ramp never drops below the 15px body floor.", "section": "typography" },
+      { "name": "The Anchored Column Rule", "body": "Every hour right-aligns to one gutter that lands directly under the header grand total. Leaf rows carry an editable field; parent rows show a computed, display-only sum. Parents are never typed.", "section": "elevation" },
+      { "name": "The Flat-By-Default Rule", "body": "Surfaces are flat at rest. Depth and color are a response to interaction \u2014 the hover action pill lifting in, a focus border, a toggle's soft wash \u2014 never ambient ornament.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep every number monospace and tabular, right-anchored to the 74px hours gutter that lands under the grand total.",
+      "Do size outline rows by depth (22 / 18.5 / 16.5 / 15px) and never below the 15px floor.",
+      "Do draw icons as authored SVG at a 1.6px stroke; leaf = dot, parent = chevron.",
+      "Do separate top-level sections with 24px air and a full-bleed 1px Line rule.",
+      "Do address color only through the nine semantic tokens so both themes stay in sync; tint muted text from the hue on dark surfaces."
+    ],
+    "donts": [
+      "Don't use Ledger Blue as a surface fill or for body text \u2014 keep it rationed to dots, focus, and the one primary action.",
+      "Don't make parent rows editable; their numbers are computed roll-ups.",
+      "Don't reintroduce unicode glyphs or emoji as icons.",
+      "Don't add gradients, glass/blur decoration, or hard offset shadows; the world is flat and quiet.",
+      "Don't mix the three type voices \u2014 serif outline, monospace numbers, sans chrome stay in their lanes."
+    ]
+  }
+}

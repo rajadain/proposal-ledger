@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Proposal Ledger</title>
+<style>
+  :root {
+    /* Flexoki (light) — https://stephango.com/flexoki */
+    --bg: #F2F0E5;
+    --panel: #FFFCF0;
+    --ink: #100F0F;
+    --muted: #6F6E69;
+    --line: #DAD8CE;
+    --accent: #205EA6;
+    --accent-strong: #1A4F8C;
+    --accent-soft: #E1ECEB;
+    --on-accent: #FFFCF0;
+    --total: #100F0F;
+    --leaf-bg: #E6E4D9;
+    --row-hover: #F2F0E5;
+    --shadow: 0 1px 2px rgba(16,15,15,.05), 0 8px 24px rgba(16,15,15,.07);
+    --radius: 12px;
+    /* 4-base spacing scale */
+    --s1: 4px;
+    --s2: 8px;
+    --s3: 12px;
+    --s4: 16px;
+    --s5: 24px;
+    --s6: 32px;
+    /* structural */
+    --pad-x: 16px;      /* row + header horizontal gutter */
+    --hours-col: 74px;  /* fixed width of the numeric column */
+    --indent-step: 22px;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-serif: ui-serif, "New York", Georgia, Cambria, "Times New Roman", Times, serif;
+    --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  [data-theme="dark"] {
+    /* Flexoki (dark) */
+    --bg: #100F0F;
+    --panel: #1C1B1A;
+    --ink: #CECDC3;
+    --muted: #878580;
+    --line: #343331;
+    --accent: #4385BE;
+    --accent-strong: #66A0C8;
+    --accent-soft: #101A24;
+    --on-accent: #100F0F;
+    --total: #E6E4D9;
+    --leaf-bg: #282726;
+    --row-hover: #282726;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 15px;
+    line-height: 1.4;
+    -webkit-font-smoothing: antialiased;
+  }
+  .app {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 28px 20px 120px;
+  }
+
+  header.top {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: linear-gradient(var(--bg), var(--bg) 70%, transparent);
+    padding: var(--s2) var(--pad-x) var(--s4) 0;
+  }
+  .titlebar {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--s4);
+    flex-wrap: wrap;
+  }
+  h1 {
+    font-size: 20px;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+  .grand {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .grand b {
+    font-family: var(--font-mono);
+    font-size: 22px;
+    color: var(--total);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .toolbar {
+    display: flex;
+    gap: var(--s2);
+    flex-wrap: wrap;
+    margin-top: var(--s4);
+  }
+  button.btn {
+    appearance: none;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--ink);
+    padding: 7px 12px;
+    border-radius: 9px;
+    font: inherit;
+    font-size: 13.5px;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    transition: background .12s ease, border-color .12s ease, transform .04s ease;
+  }
+  button.btn:hover { background: #F2F0E5; border-color: #CECDC3; }
+  button.btn:active { transform: translateY(1px); }
+  button.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  button.btn.primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
+  button.btn.ghost { background: transparent; box-shadow: none; }
+  .spacer { flex: 1; }
+
+  .sheet {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-top: var(--s1);
+    padding: var(--s2) 0;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    gap: var(--s2);
+    min-height: 36px;
+    padding: 0 var(--pad-x) 0 var(--s2);
+    position: relative;
+  }
+  .row:hover { background: var(--row-hover, #fcfcfe); }
+  /* Group cadence: air + full-bleed rule before each top-level section */
+  .row.lvl0:not(:first-child) {
+    margin-top: var(--s5);
+    padding-top: var(--s3);
+    border-top: 1px solid var(--line);
+  }
+  /* Serif outline with a per-level size ramp; leaves never fall below the body floor */
+  .row.lvl0 > .text { font-size: 22px; letter-spacing: -0.02em; }
+  .row.lvl1 > .text { font-size: 18.5px; letter-spacing: -0.015em; }
+  .row.lvl2 > .text { font-size: 16.5px; letter-spacing: -0.01em; }
+  .row.lvl3 > .text,
+  .row.lvl4 > .text { font-size: 15px; }
+  .row .indent { flex: 0 0 auto; display: flex; align-self: stretch; }
+  .row .guide {
+    width: var(--indent-step);
+    align-self: stretch;
+    border-right: 1px solid var(--line);
+    margin-left: 10px;
+    opacity: .55;
+  }
+  .handle {
+    flex: 0 0 auto;
+    width: 22px;
+    text-align: center;
+    color: #c4c9d4;
+    cursor: grab;
+    user-select: none;
+    font-size: 13px;
+  }
+  .bullet {
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    user-select: none;
+  }
+  .bullet svg { width: 15px; height: 15px; display: block; }
+  button.bullet.toggle {
+    appearance: none;
+    border: none;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    color: var(--muted);
+    border-radius: 7px;
+    transition: background .12s ease, color .12s ease;
+  }
+  button.bullet.toggle:hover { background: var(--accent-soft); color: var(--accent); }
+  .text {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-family: var(--font-serif);
+    line-height: 1.35;
+    padding: var(--s1) var(--s2) var(--s1) 2px;
+    outline: none;
+    border-radius: 6px;
+    word-break: break-word;
+  }
+  .row.parent .text { font-weight: 600; }
+  .text:focus { background: var(--accent-soft); }
+  .text.empty::before {
+    content: attr(data-ph);
+    color: var(--muted);
+    pointer-events: none;
+  }
+  .hours {
+    flex: 0 0 auto;
+    width: var(--hours-col);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--s1);
+    font-variant-numeric: tabular-nums;
+  }
+  input.hoursInput {
+    width: 52px;
+    text-align: right;
+    font: inherit;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    color: var(--total);
+    border: 1px solid transparent;
+    background: var(--leaf-bg);
+    border-radius: 7px;
+    padding: 4px 6px;
+    outline: none;
+  }
+  input.hoursInput:hover { border-color: var(--line); }
+  input.hoursInput:focus { border-color: var(--accent); background: var(--panel); }
+  input.hoursInput::-webkit-outer-spin-button,
+  input.hoursInput::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  input.hoursInput { -moz-appearance: textfield; }
+  .totalDisplay {
+    min-width: 52px;
+    text-align: right;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    color: var(--total);
+    padding: 4px 6px;
+  }
+  .unit { color: var(--muted); font-weight: 600; font-size: 13px; width: 12px; }
+
+  .rowbtns {
+    position: absolute;
+    top: 50%;
+    right: calc(var(--hours-col) + var(--pad-x));
+    transform: translateY(-50%) translateX(4px);
+    display: flex;
+    gap: 2px;
+    padding: 2px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    box-shadow: var(--shadow);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .12s ease, transform .12s ease;
+  }
+  .row:hover .rowbtns, .row:focus-within .rowbtns {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(-50%) translateX(0);
+  }
+  .rowbtns button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .rowbtns button svg { width: 15px; height: 15px; display: block; }
+  .rowbtns button:hover { background: #E6E4D9; color: var(--ink); }
+  .rowbtns button.del:hover { background: #FFE1D5; color: #AF3029; }
+
+  .hint {
+    margin-top: var(--s4);
+    font-size: 12.5px;
+    color: var(--muted);
+    display: flex;
+    gap: var(--s3) var(--s4);
+    flex-wrap: wrap;
+  }
+  .hint kbd {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    background: #E6E4D9;
+    border: 1px solid #CECDC3;
+    border-bottom-width: 2px;
+    border-radius: 5px;
+    padding: 1px 5px;
+    font-size: 11.5px;
+  }
+
+  /* Modal */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(16,15,15,.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 50;
+  }
+  .overlay.open { display: flex; }
+  .modal {
+    background: var(--panel);
+    border-radius: 14px;
+    width: min(680px, 100%);
+    box-shadow: 0 20px 60px rgba(16,24,40,.28);
+    overflow: hidden;
+  }
+  .modal h2 { margin: 0; font-size: 16px; padding: 16px 18px; border-bottom: 1px solid var(--line); }
+  .modal .body { padding: 16px 18px; }
+  .modal p { margin: 0 0 10px; color: var(--muted); font-size: 13.5px; }
+  textarea.md {
+    width: 100%;
+    height: 300px;
+    resize: vertical;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px;
+    outline: none;
+    background: var(--panel);
+    color: var(--ink);
+  }
+  textarea.md:focus { border-color: var(--accent); }
+  .modal .foot { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 18px; border-top: 1px solid var(--line); }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 26px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #282726;
+    color: #FFFCF0;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease, transform .2s ease;
+    z-index: 60;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Dark theme overrides for hardcoded light colors */
+  [data-theme="dark"] header.top { background: linear-gradient(var(--bg), var(--bg) 70%, transparent); }
+  [data-theme="dark"] button.btn:hover { background: #282726; border-color: #403E3C; }
+  [data-theme="dark"] .rowbtns button:hover { background: #343331; color: var(--ink); }
+  [data-theme="dark"] .rowbtns button.del:hover { background: #261312; color: #D14D41; }
+  [data-theme="dark"] .hint kbd { background: #282726; border-color: #403E3C; }
+  [data-theme="dark"] textarea.md { background: #100F0F; color: var(--ink); }
+  [data-theme="dark"] input.hoursInput:focus { background: #100F0F; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="titlebar">
+      <h1>Proposal Ledger</h1>
+      <div class="grand">Total <b id="grandTotal">0</b> hours</div>
+    </div>
+    <div class="toolbar">
+      <button class="btn primary" id="copyBtn">Copy Markdown</button>
+      <button class="btn" id="importBtn">Import Markdown…</button>
+      <button class="btn ghost" id="sampleBtn">Load sample</button>
+      <div class="spacer"></div>
+      <button class="btn ghost" id="themeBtn">☾ Dark</button>
+      <button class="btn ghost" id="clearBtn">Clear all</button>
+    </div>
+  </header>
+
+  <div class="sheet" id="sheet"></div>
+
+  <div class="hint">
+    <span><kbd>Enter</kbd> new bullet</span>
+    <span><kbd>Tab</kbd> indent</span>
+    <span><kbd>Shift</kbd>+<kbd>Tab</kbd> outdent</span>
+    <span><kbd>⌫</kbd> delete empty bullet</span>
+    <span><kbd>↑</kbd>/<kbd>↓</kbd> move between rows</span>
+    <span>Only leaf bullets take hours; parents roll up automatically.</span>
+  </div>
+</div>
+
+<div class="overlay" id="importOverlay">
+  <div class="modal">
+    <h2>Import from Markdown</h2>
+    <div class="body">
+      <p>Paste a nested bullet list. Indentation sets nesting (up to 5 levels). Trailing <code>**6h**</code> or <code>**6**</code> sets leaf hours. This replaces your current list.</p>
+      <textarea class="md" id="importText" placeholder="* Section&#10;  * Task **6h**&#10;  * Task **4h**"></textarea>
+    </div>
+    <div class="foot">
+      <button class="btn ghost" id="importCancel">Cancel</button>
+      <button class="btn primary" id="importConfirm">Import</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var MAX_LEVEL = 4; // 5 levels: 0..4
+  var STORAGE_KEY = "cnp-estimator-nodes-v1";
+
+  var SAMPLE = [
+    "* Meetings **20h**",
+    "  * Kickoff **2h**",
+    "  * Sprintly Meetings **10h**",
+    "  * Ad Hoc Pairing Sessions **8h**",
+    "* Basic **44h**",
+    "  * Setup new AWS account for this work, for easy tracking / permissions **4h**",
+    "  * Get domains, DNS wired up **4h**",
+    "  * Setup GitHub repositories **4h**",
+    "  * Setup CI, deployments **12h**",
+    "  * Setup staging environment **12h**",
+    "  * Setup production environment **8h**",
+    "* Feature 1 **20h**",
+    "  * Task 1 **4h**",
+    "  * Task 2 **8h**",
+    "    * Subtask 1 **4h**",
+    "    * Subtask 2 **4h**",
+    "  * Task 3 **8h**",
+    "* Feature 2 **20h**",
+    "  * Task 1 **20h**",
+    "    * Subtask 1 **8h**",
+    "    * Subtask 2 **12h**"
+  ].join("\n");
+
+  var idCounter = 1;
+  function nextId() { return "n" + (idCounter++); }
+
+  /** @type {{id:string,text:string,hours:number,level:number}[]} */
+  var nodes = [];
+
+  var focusId = null;   // node id to focus after render
+  var focusOffset = 0;  // caret offset to restore
+
+  var sheet = document.getElementById("sheet");
+
+  // ---------- Model helpers ----------
+
+  function subtreeRange(i) {
+    var lvl = nodes[i].level;
+    var j = i + 1;
+    while (j < nodes.length && nodes[j].level > lvl) j++;
+    return [i, j]; // [start, end)
+  }
+
+  function isLeaf(i) {
+    return i + 1 >= nodes.length || nodes[i + 1].level <= nodes[i].level;
+  }
+
+  // Returns array of computed hours per node (leaf = own hours, parent = sum of leaf descendants)
+  function computeTotals() {
+    var res = new Array(nodes.length).fill(0);
+    var stack = [];
+    for (var i = 0; i < nodes.length; i++) {
+      var lvl = nodes[i].level;
+      while (stack.length && nodes[stack[stack.length - 1]].level >= lvl) stack.pop();
+      if (isLeaf(i)) {
+        var h = nodes[i].hours || 0;
+        res[i] = h;
+        for (var k = 0; k < stack.length; k++) res[stack[k]] += h;
+      }
+      stack.push(i);
+    }
+    return res;
+  }
+
+  function grandTotal(totals) {
+    var sum = 0;
+    for (var i = 0; i < nodes.length; i++) if (isLeaf(i)) sum += nodes[i].hours || 0;
+    return sum;
+  }
+
+  function findIndex(id) {
+    for (var i = 0; i < nodes.length; i++) if (nodes[i].id === id) return i;
+    return -1;
+  }
+
+  // ---------- Persistence ----------
+
+  function save() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(nodes));
+    } catch (e) { /* ignore quota errors */ }
+  }
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length) {
+          nodes = parsed.map(function (n) {
+            return {
+              id: nextId(),
+              text: typeof n.text === "string" ? n.text : "",
+              hours: sanitizeHours(n.hours),
+              level: Math.max(0, Math.min(MAX_LEVEL, n.level | 0)),
+              collapsed: !!n.collapsed
+            };
+          });
+          return true;
+        }
+      }
+    } catch (e) { /* fall through */ }
+    return false;
+  }
+
+  function sanitizeHours(v) {
+    var n = parseInt(v, 10);
+    if (isNaN(n) || n < 0) return 0;
+    return n;
+  }
+
+  // ---------- Markdown ----------
+
+  function toMarkdown() {
+    var totals = computeTotals();
+    return nodes.map(function (n, i) {
+      var indent = "  ".repeat(n.level);
+      var text = (n.text || "").trim() || "Untitled";
+      return indent + "* " + text + " **" + totals[i] + "h**";
+    }).join("\n");
+  }
+
+  function parseMarkdown(text) {
+    var lines = text.split(/\r?\n/);
+    var out = [];
+    var indentStack = []; // indent widths, index == level
+    for (var li = 0; li < lines.length; li++) {
+      var raw = lines[li];
+      var m = raw.match(/^(\s*)[-*+]\s+(.*)$/);
+      if (!m) continue;
+      var indent = m[1].replace(/\t/g, "  ").length;
+      var content = m[2];
+
+      var hours = 0;
+      var hm = content.match(/\s*\*\*\s*(\d+)\s*h?\s*\*\*\s*$/i);
+      if (hm) {
+        hours = sanitizeHours(hm[1]);
+        content = content.slice(0, content.length - hm[0].length);
+      }
+      content = content.replace(/\s+$/, "").trim();
+
+      while (indentStack.length && indent < indentStack[indentStack.length - 1]) indentStack.pop();
+      if (!indentStack.length || indent > indentStack[indentStack.length - 1]) indentStack.push(indent);
+
+      var level = Math.min(indentStack.length - 1, MAX_LEVEL);
+
+      out.push({ id: nextId(), text: content, hours: hours, level: level, collapsed: false });
+    }
+    return out;
+  }
+
+  // ---------- Rendering ----------
+
+  function render() {
+    var totals = computeTotals();
+    var frag = document.createDocumentFragment();
+
+    var collapseLevel = Infinity; // hide nodes with level > this
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i];
+      var leaf = isLeaf(i);
+
+      if (n.level > collapseLevel) continue; // hidden under a collapsed ancestor
+      collapseLevel = Infinity; // visible node exits any collapsed region
+
+      var row = document.createElement("div");
+      row.className = "row lvl" + n.level + (leaf ? " leaf" : " parent");
+      row.dataset.id = n.id;
+
+      // indentation guides
+      var indent = document.createElement("div");
+      indent.className = "indent";
+      for (var g = 0; g < n.level; g++) {
+        var guide = document.createElement("div");
+        guide.className = "guide";
+        indent.appendChild(guide);
+      }
+      row.appendChild(indent);
+
+      var bullet;
+      if (leaf) {
+        bullet = document.createElement("div");
+        bullet.className = "bullet";
+        bullet.innerHTML = icon("leaf");
+      } else {
+        bullet = document.createElement("button");
+        bullet.className = "bullet toggle";
+        bullet.dataset.action = "toggle";
+        bullet.innerHTML = icon(n.collapsed ? "collapsed" : "open");
+        bullet.title = n.collapsed ? "Expand" : "Collapse";
+        bullet.setAttribute("aria-label", n.collapsed ? "Expand section" : "Collapse section");
+        bullet.setAttribute("aria-expanded", n.collapsed ? "false" : "true");
+      }
+      row.appendChild(bullet);
+
+      var text = document.createElement("div");
+      text.className = "text" + (n.text ? "" : " empty");
+      text.contentEditable = "true";
+      text.spellcheck = false;
+      text.dataset.ph = n.level === 0 ? "Section…" : "Item…";
+      text.textContent = n.text;
+      text.dataset.id = n.id;
+      row.appendChild(text);
+
+      var hours = document.createElement("div");
+      hours.className = "hours";
+      if (leaf) {
+        var input = document.createElement("input");
+        input.className = "hoursInput";
+        input.type = "number";
+        input.min = "0";
+        input.step = "1";
+        input.inputMode = "numeric";
+        input.value = String(n.hours || 0);
+        input.dataset.id = n.id;
+        hours.appendChild(input);
+      } else {
+        var disp = document.createElement("div");
+        disp.className = "totalDisplay";
+        disp.textContent = String(totals[i]);
+        disp.dataset.role = "total";
+        hours.appendChild(disp);
+      }
+      var unit = document.createElement("span");
+      unit.className = "unit";
+      unit.textContent = "h";
+      hours.appendChild(unit);
+      row.appendChild(hours);
+
+      var rowbtns = document.createElement("div");
+      rowbtns.className = "rowbtns";
+      rowbtns.appendChild(mkRowBtn("Indent", "indent"));
+      rowbtns.appendChild(mkRowBtn("Outdent", "outdent"));
+      rowbtns.appendChild(mkRowBtn("Move up", "up"));
+      rowbtns.appendChild(mkRowBtn("Move down", "down"));
+      var del = mkRowBtn("Delete", "delete");
+      del.classList.add("del");
+      rowbtns.appendChild(del);
+      row.appendChild(rowbtns);
+
+      frag.appendChild(row);
+
+      if (!leaf && n.collapsed) collapseLevel = n.level; // hide descendants
+    }
+
+    sheet.innerHTML = "";
+    sheet.appendChild(frag);
+
+    document.getElementById("grandTotal").textContent = String(grandTotal(totals));
+
+    if (focusId) {
+      var el = sheet.querySelector('.text[data-id="' + focusId + '"]');
+      if (el) setCaret(el, focusOffset);
+      focusId = null;
+    }
+  }
+
+  // Authored SVG icon set — one consistent stroke/weight across bullets and row controls.
+  function icon(name) {
+    var s = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
+    switch (name) {
+      case "leaf":      return '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2.6" fill="currentColor"/></svg>';
+      case "collapsed": return s + '<path d="M6 3.75 10.25 8 6 12.25"/></svg>';
+      case "open":      return s + '<path d="M3.75 6 8 10.25 12.25 6"/></svg>';
+      case "indent":    return s + '<path d="M12.5 3.5v9"/><path d="M3.5 8h6"/><path d="M7 5.5 9.5 8 7 10.5"/></svg>';
+      case "outdent":   return s + '<path d="M3.5 3.5v9"/><path d="M12.5 8h-6"/><path d="M9 5.5 6.5 8 9 10.5"/></svg>';
+      case "up":        return s + '<path d="M8 12.25V4"/><path d="M4.5 7.5 8 4l3.5 3.5"/></svg>';
+      case "down":      return s + '<path d="M8 3.75v8.25"/><path d="M4.5 8.5 8 12l3.5-3.5"/></svg>';
+      case "delete":    return s + '<path d="M4.5 4.5 11.5 11.5"/><path d="M11.5 4.5 4.5 11.5"/></svg>';
+    }
+    return "";
+  }
+
+  function mkRowBtn(title, action) {
+    var b = document.createElement("button");
+    b.innerHTML = icon(action);
+    b.title = title;
+    b.setAttribute("aria-label", title);
+    b.dataset.action = action;
+    return b;
+  }
+
+  // Update only the computed parent displays + grand total, without re-rendering rows.
+  function refreshTotals() {
+    var totals = computeTotals();
+    var rows = sheet.querySelectorAll(".row");
+    for (var r = 0; r < rows.length; r++) {
+      var disp = rows[r].querySelector('[data-role="total"]');
+      if (disp) {
+        var idx = findIndex(rows[r].dataset.id);
+        if (idx >= 0) disp.textContent = String(totals[idx]);
+      }
+    }
+    document.getElementById("grandTotal").textContent = String(grandTotal(totals));
+  }
+
+  // ---------- Caret helpers ----------
+
+  function caretOffset(el) {
+    var sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return (el.textContent || "").length;
+    var r = sel.getRangeAt(0);
+    var pre = r.cloneRange();
+    pre.selectNodeContents(el);
+    pre.setEnd(r.endContainer, r.endOffset);
+    return pre.toString().length;
+  }
+
+  function setCaret(el, offset) {
+    el.focus();
+    var len = (el.textContent || "").length;
+    offset = Math.max(0, Math.min(offset, len));
+    var sel = window.getSelection();
+    var r = document.createRange();
+    if (el.firstChild) {
+      r.setStart(el.firstChild, offset);
+    } else {
+      r.setStart(el, 0);
+    }
+    r.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(r);
+  }
+
+  // ---------- Structural operations ----------
+
+  function addBulletAfter(i, offset) {
+    var cur = nodes[i];
+    var txt = cur.text || "";
+    var before = txt.slice(0, offset);
+    var after = txt.slice(offset);
+    cur.text = before;
+    var range = subtreeRange(i);
+    var insertAt = range[1]; // after cur's subtree, as a sibling
+    var node = { id: nextId(), text: after, hours: 0, level: cur.level, collapsed: false };
+    nodes.splice(insertAt, 0, node);
+    focusId = node.id;
+    focusOffset = 0;
+    save();
+    render();
+  }
+
+  function indent(i) {
+    if (i === 0) return;
+    var prev = nodes[i - 1];
+    if (prev.level < nodes[i].level) return; // already deepest child of prev
+    var range = subtreeRange(i);
+    var maxDesc = 0;
+    for (var k = range[0]; k < range[1]; k++) maxDesc = Math.max(maxDesc, nodes[k].level);
+    if (maxDesc + 1 > MAX_LEVEL) return;
+    for (var j = range[0]; j < range[1]; j++) nodes[j].level++;
+    save();
+    render();
+  }
+
+  function outdent(i) {
+    if (nodes[i].level === 0) return;
+    var range = subtreeRange(i);
+    for (var j = range[0]; j < range[1]; j++) nodes[j].level--;
+    save();
+    render();
+  }
+
+  function toggleCollapse(i) {
+    if (isLeaf(i)) return;
+    nodes[i].collapsed = !nodes[i].collapsed;
+    save();
+    render();
+  }
+
+  function moveUp(i) {
+    var range = subtreeRange(i);
+    var s = range[0], e = range[1];
+    var p = s - 1;
+    if (p < 0) return;
+    if (nodes[p].level < nodes[i].level) return; // no previous sibling (p is parent)
+    // start of previous sibling subtree
+    var ps = p;
+    while (ps > 0 && nodes[ps - 1].level > nodes[i].level) ps--;
+    var block = nodes.splice(s, e - s); // ps < s, so ps stays valid
+    Array.prototype.splice.apply(nodes, [ps, 0].concat(block));
+    save();
+    render();
+  }
+
+  function moveDown(i) {
+    var range = subtreeRange(i);
+    var s = range[0], e = range[1];
+    if (e >= nodes.length) return;
+    if (nodes[e].level < nodes[i].level) return; // no next sibling
+    var ne = e + 1;
+    while (ne < nodes.length && nodes[ne].level > nodes[i].level) ne++;
+    var block = nodes.splice(s, e - s);
+    var insertAt = ne - (e - s);
+    Array.prototype.splice.apply(nodes, [insertAt, 0].concat(block));
+    save();
+    render();
+  }
+
+  function deleteSubtree(i) {
+    var range = subtreeRange(i);
+    nodes.splice(range[0], range[1] - range[0]);
+    if (nodes.length === 0) {
+      nodes.push({ id: nextId(), text: "", hours: 0, level: 0, collapsed: false });
+    }
+    var focusIdx = Math.max(0, range[0] - 1);
+    focusIdx = Math.min(focusIdx, nodes.length - 1);
+    focusId = nodes[focusIdx].id;
+    focusOffset = (nodes[focusIdx].text || "").length;
+    save();
+    render();
+  }
+
+  function backspaceEmpty(i) {
+    if (nodes.length === 1) return;
+    var range = subtreeRange(i);
+    if (range[1] - range[0] > 1) return; // has children; don't delete
+    nodes.splice(i, 1);
+    var focusIdx = Math.max(0, i - 1);
+    focusId = nodes[focusIdx].id;
+    focusOffset = (nodes[focusIdx].text || "").length;
+    save();
+    render();
+  }
+
+  function moveFocus(i, dir, offset) {
+    var target = i + dir;
+    if (target < 0 || target >= nodes.length) return false;
+    focusId = nodes[target].id;
+    focusOffset = offset;
+    var el = sheet.querySelector('.text[data-id="' + nodes[target].id + '"]');
+    if (el) { setCaret(el, offset); focusId = null; return true; }
+    return false;
+  }
+
+  // ---------- Event wiring ----------
+
+  // Clear a leaf's "0" on focus so typing replaces it; restore 0 when left empty.
+  sheet.addEventListener("focusin", function (e) {
+    var t = e.target;
+    if (t.classList && t.classList.contains("hoursInput") && t.value === "0") {
+      t.value = "";
+    }
+  });
+  sheet.addEventListener("focusout", function (e) {
+    var t = e.target;
+    if (t.classList && t.classList.contains("hoursInput") && t.value === "") {
+      var idx = findIndex(t.dataset.id);
+      if (idx >= 0) nodes[idx].hours = 0;
+      t.value = "0";
+      refreshTotals();
+      save();
+    }
+  });
+
+  sheet.addEventListener("input", function (e) {
+    var t = e.target;
+    if (t.classList.contains("text")) {
+      var i = findIndex(t.dataset.id);
+      if (i < 0) return;
+      nodes[i].text = t.textContent;
+      if (t.textContent) t.classList.remove("empty"); else t.classList.add("empty");
+      save();
+    } else if (t.classList.contains("hoursInput")) {
+      var idx = findIndex(t.dataset.id);
+      if (idx < 0) return;
+      nodes[idx].hours = sanitizeHours(t.value);
+      refreshTotals();
+      save();
+    }
+  });
+
+  sheet.addEventListener("keydown", function (e) {
+    var t = e.target;
+
+    if (t.classList.contains("hoursInput")) {
+      // keep hours integer-only; block decimal/e
+      if (e.key === "." || e.key === "e" || e.key === "E" || e.key === "+" || e.key === "-") {
+        e.preventDefault();
+      }
+      return;
+    }
+
+    if (!t.classList.contains("text")) return;
+    var i = findIndex(t.dataset.id);
+    if (i < 0) return;
+    var offset = caretOffset(t);
+
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addBulletAfter(i, offset);
+    } else if (e.key === "Tab") {
+      e.preventDefault();
+      focusId = nodes[i].id;
+      focusOffset = offset;
+      if (e.shiftKey) outdent(i); else indent(i);
+    } else if (e.key === "Backspace") {
+      if (offset === 0 && (t.textContent || "").length === 0) {
+        e.preventDefault();
+        backspaceEmpty(i);
+      }
+    } else if (e.key === "ArrowUp") {
+      if (moveFocus(i, -1, offset)) e.preventDefault();
+    } else if (e.key === "ArrowDown") {
+      if (moveFocus(i, 1, offset)) e.preventDefault();
+    }
+  });
+
+  sheet.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-action]");
+    if (!b) return;
+    var row = e.target.closest(".row");
+    if (!row) return;
+    var i = findIndex(row.dataset.id);
+    if (i < 0) return;
+    if (b.dataset.action === "toggle") { toggleCollapse(i); return; }
+    focusId = nodes[i].id;
+    focusOffset = (nodes[i].text || "").length;
+    switch (b.dataset.action) {
+      case "indent": indent(i); break;
+      case "outdent": outdent(i); break;
+      case "up": moveUp(i); break;
+      case "down": moveDown(i); break;
+      case "delete": deleteSubtree(i); break;
+    }
+  });
+
+  // ---------- Toolbar ----------
+
+  document.getElementById("copyBtn").addEventListener("click", function () {
+    var md = toMarkdown();
+    copyText(md).then(function () {
+      toast("Copied Markdown to clipboard");
+    }).catch(function () {
+      toast("Copy failed — select and copy manually");
+    });
+  });
+
+  document.getElementById("sampleBtn").addEventListener("click", function () {
+    if (nodes.length && !(nodes.length === 1 && !nodes[0].text)) {
+      if (!confirm("Replace the current list with the sample?")) return;
+    }
+    nodes = parseMarkdown(SAMPLE);
+    save();
+    focusId = null;
+    render();
+    toast("Loaded sample");
+  });
+
+  document.getElementById("clearBtn").addEventListener("click", function () {
+    if (!confirm("Clear all bullets? This cannot be undone.")) return;
+    nodes = [{ id: nextId(), text: "", hours: 0, level: 0, collapsed: false }];
+    save();
+    focusId = nodes[0].id;
+    focusOffset = 0;
+    render();
+  });
+
+  var overlay = document.getElementById("importOverlay");
+  var importText = document.getElementById("importText");
+
+  document.getElementById("importBtn").addEventListener("click", function () {
+    importText.value = "";
+    overlay.classList.add("open");
+    importText.focus();
+  });
+  document.getElementById("importCancel").addEventListener("click", function () {
+    overlay.classList.remove("open");
+  });
+  overlay.addEventListener("click", function (e) {
+    if (e.target === overlay) overlay.classList.remove("open");
+  });
+  document.getElementById("importConfirm").addEventListener("click", function () {
+    var parsed = parseMarkdown(importText.value);
+    if (!parsed.length) { toast("No bullets found to import"); return; }
+    nodes = parsed;
+    save();
+    overlay.classList.remove("open");
+    focusId = null;
+    render();
+    toast("Imported " + parsed.length + " bullets");
+  });
+
+  // ---------- Utilities ----------
+
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text);
+    }
+    return new Promise(function (resolve, reject) {
+      try {
+        var ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        var ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        ok ? resolve() : reject();
+      } catch (err) { reject(err); }
+    });
+  }
+
+  var toastEl = document.getElementById("toast");
+  var toastTimer = null;
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.classList.remove("show"); }, 1800);
+  }
+
+  // ---------- Theme ----------
+
+  var THEME_KEY = "cnp-estimator-theme";
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute("data-theme", theme);
+    var btn = document.getElementById("themeBtn");
+    if (btn) btn.textContent = theme === "dark" ? "☀ Light" : "☾ Dark";
+  }
+
+  function initTheme() {
+    var stored = null;
+    try { stored = localStorage.getItem(THEME_KEY); } catch (e) {}
+    var mq = window.matchMedia("(prefers-color-scheme: dark)");
+    applyTheme(stored || (mq.matches ? "dark" : "light"));
+    // Follow system changes only while the user hasn't picked a preference.
+    if (mq.addEventListener) {
+      mq.addEventListener("change", function (ev) {
+        var s = null;
+        try { s = localStorage.getItem(THEME_KEY); } catch (e) {}
+        if (!s) applyTheme(ev.matches ? "dark" : "light");
+      });
+    }
+    document.getElementById("themeBtn").addEventListener("click", function () {
+      var next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+      applyTheme(next);
+    });
+  }
+
+  // ---------- Init ----------
+
+  initTheme();
+  if (!load()) {
+    nodes = [{ id: nextId(), text: "", hours: 0, level: 0, collapsed: false }];
+  }
+  render();
+  // focus first row for immediate typing
+  var first = sheet.querySelector(".text");
+  if (first) setCaret(first, (nodes[0].text || "").length);
+})();
+</script>
+</body>
+</html>
