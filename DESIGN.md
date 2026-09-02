@@ -11,6 +11,8 @@ colors:
   surface-leaf: "#E6E4D9"
   accent-soft: "#E1ECEB"
   line: "#DAD8CE"
+  mag-green: "#66800B"
+  mag-red: "#AF3029"
 typography:
   display:
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
@@ -105,6 +107,9 @@ components:
     textColor: "{colors.accent-blue}"
     rounded: "{rounded.md}"
     size: "24px"
+  magnitude-spine:
+    width: "6px"
+    rounded: "3px"
 ---
 
 # Design System: Proposal Ledger
@@ -138,14 +143,16 @@ from boxing every row.
 - Serif outline, monospace numbers, sans chrome — three voices, three jobs.
 - Font size encodes nesting depth; the deeper the bullet, the smaller (to a floor).
 - One rationed ink‑blue accent; everything else is warm ink on paper.
+- One functional exception to the ink‑only rule: a green→red magnitude spine beside each number, encoding a row's hours against its peers — data, never decoration.
 - Flat by default; depth is a response to interaction, never decoration.
 - A single anchored number column that lands in the grand total.
 
 ## Colors
 
 The [Flexoki](https://stephango.com/flexoki) palette: a warm paper‑and‑ink
-system carrying exactly one accent. Values below are the light‑theme (default)
-source of truth; the dark theme redefines the same nine tokens (see the
+system carrying exactly one accent, plus a two‑color functional pair reserved
+for data. Values below are the light‑theme (default)
+source of truth; the dark theme redefines the same tokens (see the
 Dual‑Theme Rule). Following Flexoki convention, light mode uses the 600‑weight
 accents and dark mode uses the 400‑weight.
 
@@ -163,17 +170,29 @@ accents and dark mode uses the 400‑weight.
 - **Line** (`#DAD8CE`, Flexoki base‑150): Section dividers, card borders, indent guides.
 - **Accent Soft** (`#E1ECEB`, Flexoki blue‑50): The wash behind a focused field or a hovered collapse toggle.
 
+### Functional (data heat)
+- **Heat Green** (`#66800B`, Flexoki green‑600) → **Heat Red** (`#AF3029`, Flexoki red‑600): The two poles of the magnitude spine — a per‑row bar whose fill is mixed (in OKLCH) from green (small) to red (large) by the row's share of the largest total at its own nesting level. This is the only non‑accent color in the system, and it is *data, never decoration*: it appears solid only once a row carries hours. Dark theme uses the Flexoki 400‑weights (green `#879A39`, red `#D14D41`).
+
 ### Named Rules
 **The One Blue Rule.** Ledger Blue covers a tiny fraction of any screen — dots,
 focus, one button. Its rarity is what makes it read as "interactive." Never use
 it as a surface fill or for prose.
 
-**The Dual‑Theme Rule.** Color is addressed only through the nine semantic
-tokens; both themes redefine the *same* tokens (dark, Flexoki: canvas `#100F0F`,
+**The Dual‑Theme Rule.** Color is addressed only through the semantic tokens
+(the nine surface/ink/accent semantics plus the two magnitude poles); both themes
+redefine the *same* tokens (dark, Flexoki: canvas `#100F0F`,
 panel `#1C1B1A`, ink `#CECDC3`, muted `#878580`, line `#343331`, accent `#4385BE`,
-accent‑soft `#101A24`, total `#E6E4D9`, leaf `#282726`). Never hard‑code a raw
+accent‑soft `#101A24`, total `#E6E4D9`, leaf `#282726`, mag‑green `#879A39`,
+mag‑red `#D14D41`). Never hard‑code a raw
 color at a call site; on dark surfaces, muted text is tinted from the hue, never
 flat gray.
+
+**The Magnitude Heat Rule.** Green→red is reserved exclusively for the magnitude
+spine, and it encodes exactly one thing: a row's hours relative to its peers at
+the *same nesting level* — not the grand total, so the ramp is fully exercised at
+every depth. It is mixed in OKLCH (the midrange passes through legible yellows
+and oranges), sits solid only on rows that carry hours, and never colors text,
+fills, or any other element. It is a data channel, not a second accent.
 
 ## Typography
 
@@ -267,6 +286,9 @@ authored SVG on a 16px grid at a single 1.6px stroke with round caps/joins.
 ### Outline row
 - Flex row, 36px min height, centered. Stretched 1px indent guides at 0.55 opacity show nesting. Level‑0 rows are preceded by 24px air and a full‑bleed 1px rule.
 
+### Magnitude spine (signature)
+- A 6px‑wide, 3px‑radius vertical bar pinned to the right edge of every row (`right: 5px`), just past the number so the color sits beside the value that drives it. Its fill is `color-mix(in oklch, var(--mag-red) calc(var(--mag) * 100%), var(--mag-green))`, where `--mag` is the row's rolled‑up total divided by the largest total at its nesting level. Hidden at rest (`opacity: 0`) and solid (`opacity: 1`) only once the row carries hours; it fades on the shared 120ms ease and recolors live as hours change. On spaced level‑0 rows the bar drops to `top: 19px` to line up with the section baseline.
+
 ## Do's and Don'ts
 
 ### Do:
@@ -274,7 +296,8 @@ authored SVG on a 16px grid at a single 1.6px stroke with round caps/joins.
 - **Do** size outline rows by depth (22 / 18.5 / 16.5 / 15px) and never below the 15px floor.
 - **Do** draw icons as authored SVG at a 1.6px stroke; leaf = dot, parent = chevron.
 - **Do** separate top‑level sections with 24px air and a full‑bleed 1px Line rule.
-- **Do** address color only through the nine semantic tokens so both themes stay in sync; tint muted text from the hue on dark surfaces.
+- **Do** address color only through the semantic tokens so both themes stay in sync; tint muted text from the hue on dark surfaces.
+- **Do** let the magnitude spine encode hours against the *largest peer at the same level*, mixed green→red in OKLCH, and only paint it once a row carries hours.
 
 ### Don't:
 - **Don't** use Ledger Blue as a surface fill or for body text — keep it rationed to dots, focus, and the one primary action.
@@ -282,3 +305,4 @@ authored SVG on a 16px grid at a single 1.6px stroke with round caps/joins.
 - **Don't** reintroduce unicode glyphs or emoji as icons.
 - **Don't** add gradients, glass/blur decoration, or hard offset shadows; the world is flat and quiet.
 - **Don't** mix the three type voices — serif outline, monospace numbers, sans chrome stay in their lanes.
+- **Don't** use green or red anywhere but the magnitude spine, and don't normalize it against the grand total — per‑level keeps the ramp legible at every depth.

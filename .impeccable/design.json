@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-01T00:00:00Z",
+  "generatedAt": "2026-09-02T00:00:00Z",
   "title": "Design System: Proposal Ledger",
   "extensions": {
     "colorMeta": {
@@ -11,7 +11,9 @@
       "surface-canvas": { "role": "neutral", "displayName": "Base Canvas (Flexoki base-50)", "canonical": "#F2F0E5", "tonalRamp": ["#100F0F", "#282726", "#403E3C", "#6F6E69", "#9F9D96", "#CECDC3", "#E6E4D9", "#F2F0E5"] },
       "surface-panel": { "role": "neutral", "displayName": "Paper (Flexoki paper)", "canonical": "#FFFCF0", "tonalRamp": ["#100F0F", "#282726", "#403E3C", "#6F6E69", "#9F9D96", "#CECDC3", "#E6E4D9", "#FFFCF0"] },
       "line": { "role": "neutral", "displayName": "Line (Flexoki base-150)", "canonical": "#DAD8CE", "tonalRamp": ["#403E3C", "#575653", "#6F6E69", "#878580", "#9F9D96", "#B7B5AC", "#CECDC3", "#DAD8CE"] },
-      "accent-soft": { "role": "primary", "displayName": "Accent Soft (Flexoki blue-50)", "canonical": "#E1ECEB", "tonalRamp": ["#101A24", "#12253B", "#163B66", "#1A4F8C", "#3171B2", "#66A0C8", "#ABCFE2", "#E1ECEB"] }
+      "accent-soft": { "role": "primary", "displayName": "Accent Soft (Flexoki blue-50)", "canonical": "#E1ECEB", "tonalRamp": ["#101A24", "#12253B", "#163B66", "#1A4F8C", "#3171B2", "#66A0C8", "#ABCFE2", "#E1ECEB"] },
+      "mag-green": { "role": "tertiary", "displayName": "Heat Green (Flexoki green-600)", "canonical": "#66800B", "tonalRamp": ["#252D09", "#3D4C07", "#536907", "#66800B", "#768D21", "#879A39", "#A0AF54", "#BEC97E"] },
+      "mag-red": { "role": "tertiary", "displayName": "Heat Red (Flexoki red-600)", "canonical": "#AF3029", "tonalRamp": ["#551B18", "#6C201C", "#942822", "#AF3029", "#C03E35", "#D14D41", "#E8705F", "#F89A8A"] }
     },
     "typographyMeta": {
       "display": { "displayName": "Display", "purpose": "The app title only; system sans." },
@@ -87,6 +89,14 @@
       "description": "A floating panel pill of icon buttons (indent, outdent, move up/down, delete) revealed on row hover, anchored just left of the number gutter so figures stay visible.",
       "html": "<div class='ds-pill'><button aria-label='Indent'><svg viewBox='0 0 16 16' fill='none' stroke='currentColor' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12.5 3.5v9'/><path d='M3.5 8h6'/><path d='M7 5.5 9.5 8 7 10.5'/></svg></button><button aria-label='Outdent'><svg viewBox='0 0 16 16' fill='none' stroke='currentColor' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M3.5 3.5v9'/><path d='M12.5 8h-6'/><path d='M9 5.5 6.5 8 9 10.5'/></svg></button><button aria-label='Move up'><svg viewBox='0 0 16 16' fill='none' stroke='currentColor' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M8 12.25V4'/><path d='M4.5 7.5 8 4l3.5 3.5'/></svg></button><button aria-label='Move down'><svg viewBox='0 0 16 16' fill='none' stroke='currentColor' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M8 3.75v8.25'/><path d='M4.5 8.5 8 12l3.5-3.5'/></svg></button><button class='ds-pill-del' aria-label='Delete'><svg viewBox='0 0 16 16' fill='none' stroke='currentColor' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M4.5 4.5 11.5 11.5'/><path d='M11.5 4.5 4.5 11.5'/></svg></button></div>",
       "css": ".ds-pill{display:inline-flex;gap:2px;padding:2px;background:#FFFCF0;border:1px solid #DAD8CE;border-radius:9px;box-shadow:0 1px 2px rgba(16,15,15,.05),0 8px 24px rgba(16,15,15,.07)}.ds-pill button{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border:none;background:transparent;color:#6F6E69;border-radius:6px;cursor:pointer}.ds-pill button svg{width:15px;height:15px}.ds-pill button:hover{background:#E6E4D9;color:#100F0F}.ds-pill .ds-pill-del:hover{background:#FFE1D5;color:#AF3029}"
+    },
+    {
+      "name": "Magnitude Spine",
+      "kind": "custom",
+      "refersTo": "magnitude-spine",
+      "description": "A per-row bar beside the number, mixed green->red by the row's share of the largest total at its nesting level. Solid only on rows that carry hours; the one functional non-accent color. Shown here at ~15%, 50%, and 100% of the peer max.",
+      "html": "<div class='ds-mag-demo'><span class='ds-mag' style='--mag:.15'></span><span class='ds-mag' style='--mag:.5'></span><span class='ds-mag' style='--mag:1'></span></div>",
+      "css": ".ds-mag-demo{display:flex;gap:16px;align-items:stretch;height:28px}.ds-mag{width:6px;border-radius:3px;background:color-mix(in oklch, #AF3029 calc(var(--mag) * 100%), #66800B)}"
     }
   ],
   "narrative": {
@@ -96,12 +106,14 @@
       "Serif outline, monospace numbers, sans chrome \u2014 three voices, three jobs.",
       "Font size encodes nesting depth; the deeper the bullet, the smaller (to a floor).",
       "One rationed ink-blue accent; everything else is warm ink on paper.",
+      "One functional exception to the ink-only rule: a green->red magnitude spine beside each number, encoding a row's hours against its peers — data, never decoration.",
       "Flat by default; depth is a response to interaction, never decoration.",
       "A single anchored number column that lands in the grand total."
     ],
     "rules": [
       { "name": "The One Blue Rule", "body": "Ledger Blue covers a tiny fraction of any screen \u2014 dots, focus, one button. Its rarity is what makes it read as interactive. Never use it as a surface fill or for prose.", "section": "colors" },
-      { "name": "The Dual-Theme Rule", "body": "Color is addressed only through the nine semantic tokens; both light and dark themes redefine the same tokens. Never hard-code a raw color at a call site; on dark surfaces, muted text is tinted from the hue, never flat gray.", "section": "colors" },
+      { "name": "The Dual-Theme Rule", "body": "Color is addressed only through the semantic tokens (the nine surface/ink/accent semantics plus the two magnitude poles); both light and dark themes redefine the same tokens. Never hard-code a raw color at a call site; on dark surfaces, muted text is tinted from the hue, never flat gray.", "section": "colors" },
+      { "name": "The Magnitude Heat Rule", "body": "Green->red is reserved exclusively for the magnitude spine, and it encodes one thing: a row's hours relative to its peers at the same nesting level (not the grand total, so the ramp is fully used at every depth). It is mixed in OKLCH so the midrange passes through legible yellows and oranges, sits solid only on rows that carry hours, and never colors text, fills, or any other element. It is a data channel, not a second accent.", "section": "colors" },
       { "name": "The Three Voices Rule", "body": "Serif is for the outline, monospace is for numbers, sans is for chrome. A number is never serif; a control label is never serif; the outline is never sans.", "section": "typography" },
       { "name": "The Depth Ramp Rule", "body": "Font size encodes nesting: 22 to 18.5 to 16.5 to 15px as you descend. The ramp never drops below the 15px body floor.", "section": "typography" },
       { "name": "The Anchored Column Rule", "body": "Every hour right-aligns to one gutter that lands directly under the header grand total. Leaf rows carry an editable field; parent rows show a computed, display-only sum. Parents are never typed.", "section": "elevation" },
@@ -112,14 +124,16 @@
       "Do size outline rows by depth (22 / 18.5 / 16.5 / 15px) and never below the 15px floor.",
       "Do draw icons as authored SVG at a 1.6px stroke; leaf = dot, parent = chevron.",
       "Do separate top-level sections with 24px air and a full-bleed 1px Line rule.",
-      "Do address color only through the nine semantic tokens so both themes stay in sync; tint muted text from the hue on dark surfaces."
+      "Do address color only through the semantic tokens so both themes stay in sync; tint muted text from the hue on dark surfaces.",
+      "Do let the magnitude spine encode hours against the largest peer at the same level, mixed green->red in OKLCH, and only paint it once a row carries hours."
     ],
     "donts": [
       "Don't use Ledger Blue as a surface fill or for body text \u2014 keep it rationed to dots, focus, and the one primary action.",
       "Don't make parent rows editable; their numbers are computed roll-ups.",
       "Don't reintroduce unicode glyphs or emoji as icons.",
       "Don't add gradients, glass/blur decoration, or hard offset shadows; the world is flat and quiet.",
-      "Don't mix the three type voices \u2014 serif outline, monospace numbers, sans chrome stay in their lanes."
+      "Don't mix the three type voices — serif outline, monospace numbers, sans chrome stay in their lanes.",
+      "Don't use green or red anywhere but the magnitude spine, and don't normalize it against the grand total — per-level keeps the ramp legible at every depth."
     ]
   }
 }

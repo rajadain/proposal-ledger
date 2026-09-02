@@ -19,6 +19,9 @@
     --total: #100F0F;
     --leaf-bg: #E6E4D9;
     --row-hover: #F2F0E5;
+    /* Magnitude spine endpoints (Flexoki green-600 → red-600) */
+    --mag-green: #66800B;
+    --mag-red: #AF3029;
     --shadow: 0 1px 2px rgba(16,15,15,.05), 0 8px 24px rgba(16,15,15,.07);
     --radius: 12px;
     /* 4-base spacing scale */
@@ -50,6 +53,9 @@
     --total: #E6E4D9;
     --leaf-bg: #282726;
     --row-hover: #282726;
+    /* Magnitude spine endpoints (Flexoki green-400 → red-400) */
+    --mag-green: #879A39;
+    --mag-red: #D14D41;
     --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.5);
   }
   * { box-sizing: border-box; }
@@ -147,6 +153,23 @@
     position: relative;
   }
   .row:hover { background: var(--row-hover, #fcfcfe); }
+  /* Magnitude spine: a bar by the number, green→red by share of the largest peer.
+     Color only appears once a row carries hours (flat by default). */
+  .row::before {
+    content: "";
+    position: absolute;
+    right: 5px;
+    top: 6px;
+    bottom: 6px;
+    width: 6px;
+    border-radius: 3px;
+    background: color-mix(in oklch, var(--mag-red) calc(var(--mag, 0) * 100%), var(--mag-green));
+    opacity: 0;
+    transition: opacity .12s ease;
+  }
+  .row.has-mag::before { opacity: 1; }
+  /* Align the spine with the text baseline on spaced top-level sections. */
+  .row.lvl0:not(:first-child)::before { top: 19px; }
   /* Group cadence: air + full-bleed rule before each top-level section */
   .row.lvl0:not(:first-child) {
     margin-top: var(--s5);
@@ -583,6 +606,7 @@
 
   function render() {
     var totals = computeTotals();
+    var levelMax = levelMaxes(totals);
     var frag = document.createDocumentFragment();
 
     var collapseLevel = Infinity; // hide nodes with level > this
@@ -596,6 +620,7 @@
       var row = document.createElement("div");
       row.className = "row lvl" + n.level + (leaf ? " leaf" : " parent");
       row.dataset.id = n.id;
+      setMagnitude(row, totals[i], levelMax[n.level]);
 
       // indentation guides
       var indent = document.createElement("div");
@@ -710,14 +735,34 @@
     return b;
   }
 
+  // Largest computed total at each nesting level — the per-level denominator for the spine.
+  function levelMaxes(totals) {
+    var m = {};
+    for (var i = 0; i < nodes.length; i++) {
+      var lv = nodes[i].level;
+      var t = totals[i] || 0;
+      if (m[lv] === undefined || t > m[lv]) m[lv] = t;
+    }
+    return m;
+  }
+
+  // Set a row's magnitude spine: share of the largest peer drives the green→red mix.
+  function setMagnitude(row, total, denom) {
+    var frac = denom > 0 ? total / denom : 0;
+    row.style.setProperty("--mag", frac.toFixed(4));
+    row.classList.toggle("has-mag", total > 0);
+  }
+
   // Update only the computed parent displays + grand total, without re-rendering rows.
   function refreshTotals() {
     var totals = computeTotals();
+    var levelMax = levelMaxes(totals);
     var rows = sheet.querySelectorAll(".row");
     for (var r = 0; r < rows.length; r++) {
+      var idx = findIndex(rows[r].dataset.id);
+      if (idx >= 0) setMagnitude(rows[r], totals[idx], levelMax[nodes[idx].level]);
       var disp = rows[r].querySelector('[data-role="total"]');
       if (disp) {
-        var idx = findIndex(rows[r].dataset.id);
         if (idx >= 0) disp.textContent = String(totals[idx]);
       }
     }
